@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modern XP Desktop — ALL Apps & Full File Support</title>
+  <style>
+    html, body { height: 100%; margin: 0; font-family: Tahoma, Arial, sans-serif; background: #a3c3ec; overflow: hidden; }
+    #bios, #bootmodernxp {position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;}
+    #bios {background:#000;color:#fff;font-family:'Consolas','Fixedsys',monospace;font-size:26px;user-select:none;}
+    #bootmodernxp {background:#1b2946;color:#fff;flex-direction:column;}
+    #bootmodernxp img {width:140px;height:140px;border-radius:35px;margin-bottom:29px;}
+    #bootmodernxp span {font-size:2em;font-weight:bold;}
+    #desktop {position:fixed;top:0;left:0;right:0;bottom:59px;z-index:2;padding:60px;min-height:95vh;background:#a3c3ec;}
+    .icon {width:104px;text-align:center;cursor:pointer;color:#e1e8fd;user-select:none;border-radius:16px;transition:background .15s;padding:13px 2px;position:absolute;background:linear-gradient(180deg,#6bb6ff 30%,#468bdc 84%);}
+    .icon img {border-radius:13px;margin-bottom:9px;width:36px;height:36px;}
+    .icon span {font-size:15px;font-weight:500;display:block;margin-top:2px;color:#fff;}
+    #taskbar-modern-xp {position:fixed;left:0;right:0;bottom:0;height:59px;width:100vw;z-index:999;background:linear-gradient(90deg,#3886cb 0%,#a3c3ec 100%);}
+    #taskbar-content {position:relative;width:100vw;height:59px;display:flex;align-items:center;}
+    #start-btn {margin-left: 15px;display:flex;align-items:center;gap:8px;background: linear-gradient(90deg,#4974e8 0%, #dc3545 90%);border-radius:22px 14px 14px 22px;padding:5px 22px 5px 0px;font-size:18px;color:#fff;font-weight:bold;min-width:120px;height:46px;}
+    #start-btn img {border-radius:50%;width:33px;height:33px;}
+    #taskbar-apps-bar {position:absolute;left:142px;right:122px;top:0;height:59px;display:flex;align-items:center;gap:7px;}
+    .taskbar-app-btn {height:38px;min-width:78px;padding:4px 12px;font-size:15px;background:linear-gradient(90deg,#81b7ff 60%,#ed2330 100%);color:#fff;border-radius:9px;font-weight:500;margin-right:8px;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .taskbar-app-btn img{width:22px;height:22px;}
+    #taskbar-clock-btn {position: absolute; right: 22px; top: 10px; background: #fafdff;border-radius:9px;padding:9px 21px;font-size:20px;color:#1869c9;font-weight:bold;}
+    #start-menu {position:fixed;left:6px;bottom:59px;width:260px;background:linear-gradient(120deg,#387cf1 15%,#cd2e35 100%);border-radius:14px 13px 19px 19px;z-index:99999;display:none;animation:popin .14s;padding:15px 15px 13px 19px;}
+    .start-menu-list{margin-bottom:14px;}
+    .start-menu-app{display:flex;align-items:center;gap:12px;font-size:15px;padding:6px 9px;margin-bottom:9px;border-radius:6px;background:rgba(255,255,255,.12);cursor:pointer;}
+    .start-menu-app img{width:30px;height:30px;border-radius:8px;}
+    .start-menu-app span{color:#fff;font-weight:500;}
+    .start-menu-bottom{border-top:1.9px solid #d72548;padding-top:14px;}
+    .start-menu-btn{display:block;width:89%;background:linear-gradient(90deg,#e4f6ff 65%,#cd2e35 100%);border:none;font-size:16px;color:#2267a3;padding:8px;margin:10px 0;border-radius:9px;font-weight:600;cursor:pointer;}
+    .window {position:fixed;top:130px;left:210px;width:568px;height:410px;background:linear-gradient(120deg,#e9f4ff 65%,#f43f58 100%);border-radius:14px;border:2.2px solid #cd2e35;display:none;flex-direction:column;z-index:1001;}
+    .window-title {user-select:none;background:linear-gradient(90deg,#5343e5 15%,#f43f58 100%);color:#fff;font-weight:600;padding:7px 14px 7px 18px;display:flex;justify-content:space-between;align-items:center;cursor:move;min-height:32px;font-size:18px;border-top-left-radius:13px;border-top-right-radius:13px;}
+    .window-controls{display:flex;gap:4px;}
+    .window-controls button {background:#fff;border:1.4px solid #cd2e35;border-radius:5px;width:28px;height:28px;cursor:pointer;font-size:17px;}
+    .window-controls button:hover {background:#cd2e35;color:#fff;}
+    .window-content {flex:1;overflow:auto;padding:17px;background:rgba(255,255,255,0.95);font-size:15px;}
+    #iconMenu {display:none;position:fixed;z-index:99999;min-width:200px;background:#fffffffa;border:2px solid #7dc6fe;box-shadow:0 6px 15px #f43f58cc;border-radius:13px;font-size:15px;}
+    #iconMenu ul {list-style:none;margin:0;padding:0;}
+    #iconMenu li {padding:11px 15px;color:#1869c9;cursor:pointer;border-bottom:1.2px solid #d0e3fd;}
+    #iconMenu li:hover {background:linear-gradient(90deg,#e4f6ff 60%,#cd2e35 100%);}
+    #deleteIconBtn{color:#cd2e35;}
+    .window-minimized { display:none !important; }
+    .window-maximized { left:0 !important; top:0 !important; width:99vw !important; height:94vh !important; min-width:0 !important; min-height:0 !important; box-shadow:0 0 60px #3349b3bb; }
+  </style>
+  <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+</head>
+<body>
+  <div id="bios"><pre id="bioslines"></pre></div>
+  <div id="bootmodernxp" style="display:none;">
+    <img src="https://i.pinimg.com/736x/9e/a8/ac/9ea8ac9376266cc8653cecf91cf373b7.jpg" />
+    <span>Starting Modern XP...</span>
+  </div>
+  <div id="desktop" style="display:none"></div>
+  <input id="desktop-upload-in" type="file" style="display:none;" multiple>
+  <div id="taskbar-modern-xp" style="display:none;">
+    <div id="taskbar-content">
+      <button id="start-btn"><img src="https://www.citypng.com/public/uploads/preview/hd-windows-xp-logo-icon-sign-png-701751694713908n79xquyu8a.png?v=2025082412" alt="Start"/>Start</button>
+      <div id="taskbar-apps-bar"></div>
+      <div id="taskbar-clock-btn"></div>
+    </div>
+  </div>
+  <div id="start-menu"></div>
+  <div id="iconMenu"><ul>
+    <li onclick="launchFromIconMenu();hideIconMenu();">Open</li>
+    <li onclick="deleteIconFromMenu();hideIconMenu();" id="deleteIconBtn">Delete</li>
+    <li onclick="uploadAllFiles();hideIconMenu();">Upload from device (all files)</li>
+    <li onclick="createNotepad();hideIconMenu();">New Notepad</li>
+  </ul></div>
+  <script>
+    // BIOS AND BOOT SCREEN
+    const bios_lines=[
+      "Windows Boot Manager v4.51PG, An Energy Star Ally",
+      "Copyright (C) 1984-2025, All Rights Reserved.",
+      "Main Processor : Intel® Pentium® 4 @ 2.80GHz",
+      "Memory Testing : 2097152K OK","","Detecting Pri Master ... Virtual Hard Disk C:",
+      "Detecting Pri Slave  ... Virtual Hard Disk D:",
+      "Detecting Sec Master ... Virtual CD/DVD E:",
+      "Detecting Sec Slave  ... None","","Initializing USB Controllers ...","",
+      "Press <DEL> to enter SETUP, <F12> to Boot Menu, <R> to Reinstall"
+    ];
+    function typeBiosLines(i=0){
+      let bios=document.getElementById('bioslines');
+      if(i<bios_lines.length){bios.innerHTML+=bios_lines[i]+"\n"; setTimeout(()=>typeBiosLines(i+1),i==bios_lines.length-1?1100:95);}
+      else{
+        setTimeout(()=>{document.getElementById('bios').style.display="none";showModernXPBoot();},750);
+      }
+    }
+    window.onload=function(){typeBiosLines();}
+    function showModernXPBoot(){
+      document.getElementById('bootmodernxp').style.display = "flex";
+      setTimeout(function(){
+        document.getElementById('bootmodernxp').style.display = "none";
+        document.getElementById('desktop').style.display = "block";
+        document.getElementById('taskbar-modern-xp').style.display = "block";
+        renderDesktop();
+      }, 1600);
+    }
+    // ALL APPS
+    let desktopApps = [
+      {id:"ie",icon:"https://static.wikia.nocookie.net/internet-explorer/images/3/37/Internet_Explorer_6_logo.png",name:"Internet Explorer",x:44,y:46},
+      {id:"flash",icon:"https://images.icon-icons.com/91/PNG/512/adobe_flash_player_16410.png",name:"Adobe Flash Player",x:44,y:166},
+      {id:"market",icon:"https://i.redd.it/if-windows-store-existed-in-2001-v0-qdzledndmrwd1.png?width=1024&format=png&auto=webp&s=f7e0c2215f9d3f94f61102cc9e97bb17e49c76a8",name:"App Market",x:44,y:277},
+      {id:"notepad",icon:"https://static.wikia.nocookie.net/logopedia/images/c/c4/Notepad_Vista_10.png",name:"Notepad",x:160,y:46},
+      {id:"calculator",icon:"https://e1.pngegg.com/pngimages/308/18/png-clipart-windows-live-for-xp-silver-desk-calculator-displaying-thumbnail.png",name:"Calculator",x:276,y:46},
+      {id:"paint",icon:"https://wiki.vg-resource.com/images/thumb/8/8f/Paint_-_Logo.png/250px-Paint_-_Logo.png",name:"Paint",x:160,y:166},
+      {id:"settings",icon:"https://img.icons8.com/pulsar-line/1200/settings.jpg",name:"Settings",x:276,y:166}
+    ];
+    let uploadedFiles = [];
+    function renderDesktop(){
+      const desktop = document.getElementById('desktop'); desktop.innerHTML="";
+      desktopApps.forEach((app,i)=>{
+        const div=document.createElement('div');
+        div.className='icon';div.tabIndex=0;div.title=app.name;
+        div.style.left=(app.x||60+i*120)+"px";
+        div.style.top=(app.y||56+i*120)+"px";
+        div.innerHTML=`<img src="${app.icon}" alt="${app.name}"/><span>${app.name}</span>`;
+        div.onclick=function(){openAppIcon(i)};
+        div.ondblclick=function(){openAppIcon(i)};
+        div.oncontextmenu=function(e){handleIconMenu(e,i);}
+        desktop.appendChild(div);
+      });
+      uploadedFiles.forEach((file, i) => {
+        const div = document.createElement('div');
+        div.className = 'icon';
+        div.tabIndex = 0;
+        div.title = file.name;
+        div.dataset.index = "f" + i;
+        div.style.left = (490 + i * 108) + "px";
+        div.style.top = (60 + (i % 6) * 80) + "px";
+        let iconURL = file.previewType === "image" ? file.content
+          : file.previewType === "audio" ? "https://upload.wikimedia.org/wikipedia/commons/4/47/Audio-file-icon.png"
+          : file.previewType === "video" ? "https://upload.wikimedia.org/wikipedia/commons/6/6b/Video-Icon.png"
+          : file.previewType === "html" ? "https://upload.wikimedia.org/wikipedia/commons/6/61/HTML5_logo_and_wordmark.svg"
+          : "https://upload.wikimedia.org/wikipedia/commons/c/c2/File_icon.svg";
+        div.innerHTML = `<img src="${iconURL}" alt="${file.name}" style="background:#fff;"/><span>${file.name}</span>`;
+        div.onclick = function () { openUploadedFile(i) };
+        div.ondblclick = function () { openUploadedFile(i) };
+        div.oncontextmenu = function (e) { handleIconMenu(e, "f" + i) };
+        desktop.appendChild(div);
+      });
+      renderAppsBar();
+      renderStartMenu();
+    }
+    function renderAppsBar(){
+      const bar=document.getElementById('taskbar-apps-bar');bar.innerHTML="";
+      desktopApps.forEach((app,i)=>{
+        let btn=document.createElement('button');
+        btn.className="taskbar-app-btn";
+        btn.innerHTML=`<img src="${app.icon}" alt=""><span>${app.name}</span>`;
+        btn.onclick=function(){openAppIcon(i)};
+        btn.oncontextmenu=function(e){handleIconMenu(e,i)};
+        bar.appendChild(btn);
+      });
+      uploadedFiles.forEach((file, i) => {
+        let btn = document.createElement('button');
+        btn.className = "taskbar-app-btn";
+        let iconURL = file.previewType === "image" ? file.content
+          : file.previewType === "audio" ? "https://upload.wikimedia.org/wikipedia/commons/4/47/Audio-file-icon.png"
+          : file.previewType === "video" ? "https://upload.wikimedia.org/wikipedia/commons/6/6b/Video-Icon.png"
+          : file.previewType === "html" ? "https://upload.wikimedia.org/wikipedia/commons/6/61/HTML5_logo_and_wordmark.svg"
+          : "https://upload.wikimedia.org/wikipedia/commons/c/c2/File_icon.svg";
+        btn.innerHTML = `<img src="${iconURL}" alt=""><span>${file.name}</span>`;
+        btn.onclick = function () { openUploadedFile(i) };
+        btn.oncontextmenu = function (e) { handleIconMenu(e, "f" + i) };
+        bar.appendChild(btn);
+      });
+    }
+    function renderStartMenu(){
+      let menu=document.getElementById('start-menu');
+      menu.innerHTML='<div class="start-menu-list"></div><div class="start-menu-bottom"></div>';
+      let list=menu.querySelector(".start-menu-list");
+      desktopApps.forEach((app,i)=>{
+        let div=document.createElement("div");
+        div.className="start-menu-app";
+        div.innerHTML=`<img src="${app.icon}" alt=""><span>${app.name}</span>`;
+        div.onclick=function(){openAppIcon(i)};
+        div.oncontextmenu=function(e){handleIconMenu(e,i);}
+        list.appendChild(div);
+      });
+      uploadedFiles.forEach((file,i)=>{
+        let div = document.createElement("div");
+        div.className = "start-menu-app";
+        let iconURL = file.previewType === "image" ? file.content
+          : file.previewType === "audio" ? "https://upload.wikimedia.org/wikipedia/commons/4/47/Audio-file-icon.png"
+          : file.previewType === "video" ? "https://upload.wikimedia.org/wikipedia/commons/6/6b/Video-Icon.png"
+          : file.previewType === "html" ? "https://upload.wikimedia.org/wikipedia/commons/6/61/HTML5_logo_and_wordmark.svg"
+          : "https://upload.wikimedia.org/wikipedia/commons/c/c2/File_icon.svg";
+        div.innerHTML = `<img src="${iconURL}" alt=""><span>${file.name}</span>`;
+        div.onclick = function () { openUploadedFile(i) };
+        div.oncontextmenu = function (e) { handleIconMenu(e, "f" + i); };
+        list.appendChild(div);
+      });
+      menu.querySelector(".start-menu-bottom").innerHTML=`<button class="start-menu-btn" onclick="location.reload()">Shut Down</button>`;
+    }
+    document.getElementById('start-btn').onclick=function(e){
+      let menu=document.getElementById('start-menu');
+      renderStartMenu();
+      menu.style.display=menu.style.display==="block"?"none":"block";
+    };
+    // Context menu logic
+    let iconMenu=document.getElementById('iconMenu'),iconMenuIndex=null;
+    function handleIconMenu(e,i){
+      e.preventDefault();
+      let mouseX = e.clientX, mouseY = e.clientY;
+      let menuWidth = 200, menuHeight = 230;
+      let maxX = window.innerWidth - menuWidth - 8;
+      let maxY = window.innerHeight - menuHeight - 8;
+      if (mouseX > maxX) mouseX = maxX;
+      if (mouseY > maxY) mouseY = maxY;
+      iconMenu.style.top = mouseY + 'px';
+      iconMenu.style.left = mouseX + 'px';
+      iconMenu.style.display = 'block';
+      iconMenuIndex=i;
+      document.getElementById("deleteIconBtn").style.display = ((typeof i === "number" && i >= 0) || (typeof i == "string" && i.startsWith("f"))) ? "block" : "none";
+    }
+    document.body.addEventListener("mousedown",function(e){
+      if (iconMenu.style.display === 'block' && !e.target.closest("#iconMenu")) hideIconMenu();
+    });
+    function hideIconMenu(){ iconMenu.style.display='none'; iconMenuIndex=null; }
+    function launchFromIconMenu(){
+      if (typeof iconMenuIndex==="number") openAppIcon(iconMenuIndex);
+      else if (typeof iconMenuIndex === "string" && iconMenuIndex.startsWith("f")) openUploadedFile(Number(iconMenuIndex.replace("f", "")));
+    }
+    function deleteIconFromMenu(){
+      if (iconMenuIndex != null && typeof iconMenuIndex === "number") {
+        desktopApps.splice(iconMenuIndex, 1);
+        renderDesktop();
+      } else if (typeof iconMenuIndex === "string" && iconMenuIndex.startsWith("f")) {
+        uploadedFiles.splice(Number(iconMenuIndex.replace("f", "")), 1);
+        renderDesktop();
+      }
+    }
+    function createNotepad(){
+      desktopApps.push({
+        id:"notepad",
+        icon:"https://static.wikia.nocookie.net/logopedia/images/c/c4/Notepad_Vista_10.png",
+        name:"New Notepad",
+        x:220+Math.random()*200,
+        y:96+Math.random()*200,
+      });
+      renderDesktop();
+    }
+    document.getElementById('desktop').oncontextmenu = function(e){
+      e.preventDefault(); handleIconMenu(e,null); document.getElementById("deleteIconBtn").style.display = "none";
+    };
+    // FULL FILE TYPE SUPPORT
+    function uploadAllFiles() {
+      let inp = document.getElementById("desktop-upload-in");
+      inp.onchange = function () {
+        if (!inp.files.length) return;
+        for (let i = 0; i < inp.files.length; i++) {
+          let file = inp.files[i];
+          let ext = file.name.split('.').pop().toLowerCase();
+          let reader = new FileReader();
+          reader.onload = function (e) {
+            let previewType = "other";
+            if (file.type.startsWith("image/") || ext === "png" || ext === "jpg" || ext === "jpeg" || ext === "gif") previewType = "image";
+            else if (file.type.startsWith("audio/") || ext === "mp3" || ext === "ogg") previewType = "audio";
+            else if (file.type.startsWith("video/") || ext === "mp4" || ext === "webm") previewType = "video";
+            else if (file.type === "text/html" || ext === "html" || ext === "htm") previewType = "html";
+            else if (file.type.startsWith("text/") || ext === "txt" || ext === "md" || ext === "csv" || ext === "json" ) previewType = "text";
+            uploadedFiles.push({ name: file.name, raw: file, content: reader.result, previewType });
+            renderDesktop();
+          };
+          if (file.type.startsWith("image/") || ext === "png" || ext === "jpg" || ext === "jpeg" || ext === "gif") reader.readAsDataURL(file);
+          else if (file.type.startsWith("audio/") || ext === "mp3" || ext === "ogg") reader.readAsDataURL(file);
+          else if (file.type.startsWith("video/") || ext === "mp4" || ext === "webm") reader.readAsDataURL(file);
+          else reader.readAsText(file);
+        }
+        inp.value = "";
+      };
+      inp.click();
+    }
+    function openUploadedFile(i) {
+      let file = uploadedFiles[i];
+      if (!file) return;
+      let win = document.createElement("div");
+      win.className = "window";
+      win.style.display = "flex";
+      let contentHtml = "";
+      if (file.previewType === "image") {
+        contentHtml = `<div class="window-content" style="text-align:center;"><img src="${file.content}" style="max-width:94%;max-height:330px;margin:20px;border-radius:13px;"><div style="margin-top:12px;">${file.name}</div></div>`;
+      } else if (file.previewType === "audio") {
+        contentHtml = `<div class="window-content" style="text-align:center;"><audio src="${file.content}" controls style="width:92%;margin-top:30px"></audio><div style="margin-top:12px;">${file.name}</div></div>`;
+      } else if (file.previewType === "video") {
+        contentHtml = `<div class="window-content" style="text-align:center;"><video src="${file.content}" controls style="width:94%;height:250px;background:#222;margin-top:20px;border-radius:14px"></video><div style="margin-top:12px;">${file.name}</div></div>`;
+      } else if (file.previewType === "html") {
+        contentHtml = `<div class="window-content" style="background:#f3f8ff"><iframe srcdoc='${file.content.replace(/'/g,"&#39;")}' style="border:0;width:98%;height:95%;min-height:340px;background:#fff;"></iframe></div>`;
+      } else if (file.previewType === "text") {
+        contentHtml = `<div class="window-content"><textarea style="width:99%;height:320px;border-radius:7px;font-size:15px;padding:11px;border:1.2px solid #cd2e35;background:#f0fcff;">${file.content}</textarea></div>`;
+      } else {
+        contentHtml = `<div class="window-content" style="padding:45px;text-align:center;font-size:1.18em">Can't preview this file type.<br><br>File name: <b>${file.name}</b></div>`;
+      }
+      win.innerHTML = `<div class="window-title">${file.name}
+        <div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+        ${contentHtml}`;
+      document.body.appendChild(win);
+      win.querySelector('.window-close').onclick = function () { win.remove(); };
+      dragWindow(win);
+    }
+    function openAppIcon(i){
+      let app = desktopApps[i];
+      if (!app) return;
+      closeAllWindows();
+      let win = document.createElement("div");
+      win.className = "window";
+      win.style.display = "flex";
+      if(app.id==="notepad"){
+        win.innerHTML = `<div class="window-title">${app.name}
+          <div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+          <div class="window-content"><textarea style="width:99%;height:320px;border-radius:7px;font-size:15px;padding:11px;border:1.2px solid #cd2e35;background:#f0fcff;"></textarea></div>`;
+        document.body.appendChild(win); win.style.display="flex"; dragWindow(win);
+        win.querySelector('.window-close').onclick=function(){ win.remove(); };
+      } else if(app.id==='ie'){
+        win.innerHTML = `<div class="window-title">${app.name}
+          <div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+          <div class="window-content">
+            <div style="margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+              <input type="text" id="ie-url-bar" value="https://www.google.com/?igu=1" style="width:79%;padding:7px 9px;font-size:15px;border-radius:6px;border:1.2px solid #cd2e35;">
+              <button id="ie-go-btn" style="padding:7px 19px;border-radius:9px;font-size:16px;background:#dc3545;color:#fff;border:1.2px solid #cd2e35;cursor:pointer;">Go</button>
+            </div>
+            <iframe id="ie-browser-frame" src="https://www.google.com/?igu=1" style="width:100%;height:340px;border:0;border-radius:8px;background:#fff;"></iframe>
+          </div>`;
+        document.body.appendChild(win); win.style.display="flex"; dragWindow(win);
+        win.querySelector('.window-close').onclick=function(){ win.remove(); };
+        // url bar logic
+        let urlBar = win.querySelector("#ie-url-bar");
+        let goBtn = win.querySelector("#ie-go-btn");
+        let frame = win.querySelector("#ie-browser-frame");
+        goBtn.onclick = function(){ frame.src = urlBar.value; };
+        urlBar.onkeydown = function(e){ if(e.key==="Enter"){ frame.src = urlBar.value; } };
+      } else if(app.id==='flash'){
+        win.innerHTML=`<div class="window-title">${app.name}<div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+        <div class="window-content" id="flash-content" style="text-align:center">
+          <input type="file" id="flash-file-input" accept=".swf" style="margin-bottom:12px;">
+          <div id="flash-player-area"></div>
+        </div>`;
+        document.body.appendChild(win); win.style.display="flex"; dragWindow(win);
+        win.querySelector('.window-close').onclick=function(){ win.remove(); };
+        function loadSWF(file, container) {
+          let reader = new FileReader();
+          reader.onload = function(e) {
+            container.innerHTML = "";
+            let ruffle = window.RufflePlayer?.newest?.() || window.RufflePlayer;
+            let player = ruffle.createPlayer();
+            player.style.width = "100%";
+            player.style.height = "270px";
+            container.appendChild(player);
+            player.load({ data: new Uint8Array(e.target.result) });
+          };
+          reader.readAsArrayBuffer(file);
+        }
+        win.querySelector('#flash-file-input').addEventListener('change', function(e) {
+          let file = e.target.files[0];
+          if (file) loadSWF(file, win.querySelector('#flash-player-area'));
+        });
+      } else if(app.id==='calculator'){
+        win.innerHTML = `<div class="window-title">${app.name}
+          <div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+          <div class="window-content">
+            <input id="calc-display" type="text" style="width:100%;height:48px;font-size:2em;text-align:right;margin-bottom:12px;border:1px solid #cd2e35;" disabled>
+            <div>
+              <button onclick="calcInput('7')">7</button><button onclick="calcInput('8')">8</button><button onclick="calcInput('9')">9</button><button onclick="calcInput('/')">÷</button>
+            </div>
+            <div>
+              <button onclick="calcInput('4')">4</button><button onclick="calcInput('5')">5</button><button onclick="calcInput('6')">6</button><button onclick="calcInput('*')">×</button>
+            </div>
+            <div>
+              <button onclick="calcInput('1')">1</button><button onclick="calcInput('2')">2</button><button onclick="calcInput('3')">3</button><button onclick="calcInput('-')">−</button>
+            </div>
+            <div>
+              <button onclick="calcInput('0')">0</button><button onclick="calcInput('.')">.</button><button onclick="calcInput('C')">C</button><button onclick="calcInput('+')">+</button>
+            </div>
+            <div style="margin-top:8px;">
+              <button onclick="calcInput('=')" style="width:90px;background:#cd2e35;color:#fff;border-radius:5px;">=</button>
+            </div>
+          </div>`;
+        document.body.appendChild(win); win.style.display="flex"; dragWindow(win);
+        win.querySelector('.window-close').onclick=function(){ win.remove(); };
+        let calcDisplay = win.querySelector("#calc-display"); let calcCurrent = "";
+        window.calcInput = function(val){
+          if(val==="C") calcCurrent="";
+          else if(val==="="){ try{ calcCurrent = ""+eval(calcCurrent); }catch(e){calcCurrent="Error";}}
+          else calcCurrent += val;
+          calcDisplay.value = calcCurrent;
+        }
+      } else if(app.id==='market'){
+        win.innerHTML = `<div class="window-title">${app.name}
+          <div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+          <div class="window-content" style="line-height:2;font-size:1.4em;color:#cd2e35;text-align:center;">Apps coming soon</div>`;
+        document.body.appendChild(win); win.style.display="flex"; dragWindow(win);
+        win.querySelector('.window-close').onclick=function(){ win.remove(); };
+      } else if(app.id==='paint'||app.id==='settings'){
+        win.innerHTML = `<div class="window-title">${app.name}
+          <div class="window-controls"><button class="window-close">&#10005;</button></div></div>
+          <div class="window-content"><span>No implementation yet.</span></div>`;
+        document.body.appendChild(win); win.style.display="flex"; dragWindow(win);
+        win.querySelector('.window-close').onclick=function(){ win.remove(); };
+      }
+    }
+    function closeAllWindows(){
+      document.querySelectorAll('.window').forEach(win=>win.remove());
+    }
+    function dragWindow(win){
+      let header = win.querySelector('.window-title'), dragging=false, offsetX=0,offsetY=0;
+      if(!header)return;
+      header.onmousedown=function(e){
+        dragging=true;
+        let rect = win.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        win.style.zIndex = 1999;
+        document.body.style.userSelect = "none";
+      };
+      window.addEventListener('mousemove',function(e){
+        if(!dragging)return;
+        win.style.left=(e.clientX-offsetX)+"px"; win.style.top=(e.clientY-offsetY)+"px";
+      });
+      window.addEventListener('mouseup',function(){
+        dragging=false; win.style.zIndex = 1001; document.body.style.userSelect="";
+      });
+    }
+    setInterval(function(){
+      const now=new Date();
+      let hours=now.getHours(), mins=now.getMinutes();
+      let ampm=hours>=12?"AM":"PM";hours=hours%12;if(hours===0)hours=12;
+      mins=(mins<10?"0":"")+mins;
+      document.getElementById('taskbar-clock-btn').textContent=hours+":"+mins+" "+ampm;
+    },1000);
+  </script>
+</body>
+</html>
